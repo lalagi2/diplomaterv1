@@ -1,7 +1,22 @@
 #include "CGO.h"
 
+void CGO::printFingerPrint()
+{
+	for (auto kf : fingerPrint)
+	{
+		for (auto cgo : kf)
+		{
+			std::cout << cgo << " ";
+		}
+
+		std::cout << std::endl;
+	}
+}
+
 void CGO::run(cv::Mat keyFrame)
 {
+	std::vector<double> subMatricesCGO;
+
 	#pragma omp parallel for 
 	for (int n = 0; n < 8; n++)
 	{
@@ -48,6 +63,9 @@ void CGO::run(cv::Mat keyFrame)
 			}
 		}
 
-		fingerPrint[n] = szamlaloosszeg / sumM;
+		
+		subMatricesCGO.push_back(szamlaloosszeg / sumM);
 	}
+
+	fingerPrint.push_back(subMatricesCGO);
 }

@@ -13,9 +13,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 #include "CGO.h"
+#include "FrameMontage.h"
 
 #define SCENEDETECECTTHRESHOLD 210
-#define VIDEOCUTTHRESHOLD 1000
+#define VIDEOCUTTHRESHOLD 200
 
 int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 {
@@ -80,6 +81,7 @@ int main()
 
 	std::vector<cv::Mat> keyFrames;
 
+	FrameMontage frameMontage;
 	while (1)
 	{
 		double currentFrame = cap.get(CV_CAP_PROP_POS_FRAMES);
@@ -94,6 +96,14 @@ int main()
 
 			cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
 			cv::imshow("video", frame);
+
+			// FrameMontage
+			if ((int)currentFrame % 50 == 0)
+			{
+				frameMontage.run(frame);
+				
+				//cv::imshow("video", frameMontage.frameMontage);
+			}
 
 			if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
 			{
@@ -117,26 +127,27 @@ int main()
 	}
 
 	// Centroid of gradient
-	CGO cgo;
-	cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
+	//CGO cgo;
+	//cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
 
-	auto start = std::chrono::system_clock::now();
-	for (unsigned int i = 0; i < keyFrames.size(); i++)
-	{
-		auto start = std::chrono::system_clock::now();
+	//auto start = std::chrono::system_clock::now();
+	//for (unsigned int i = 0; i < keyFrames.size(); i++)
+	//{
+	//	auto start = std::chrono::system_clock::now();
 
-		cgo.run(keyFrames[i]);
-	}
+	//	cgo.run(keyFrames[i]);
+	//}
 
-	auto end = std::chrono::system_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-	std::cout << "Elapsed:" << elapsed_seconds;
+	//auto end = std::chrono::system_clock::now();
+	//auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	//double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	//std::cout << "Elapsed:" << elapsed_seconds << std::endl;
 
-	for (auto o : cgo.fingerPrint)
-	{
-		std::cout << o << " " << std::endl;
-	}
+	//cgo.printFingerPrint();
+
+	frameMontage.calculateFingerPrint();
+	frameMontage.printFingerPrint();
+
 
 	return 0;
 }

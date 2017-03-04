@@ -12,12 +12,14 @@ class CGO
 {
 public:
 
-	std::vector<double> fingerPrint;
+	std::vector<std::vector<double>> fingerPrint;
 
 	CGO()
 	{
-		fingerPrint.resize(8);
+
 	}
+
+	void printFingerPrint();
 
 	void run(cv::Mat keyFrame);
 };

@@ -154,12 +154,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CGO.h" />
+    <ClInclude Include="FrameMontage.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CGO.cpp" />
     <ClCompile Include="dipterv.cpp" />
+    <ClCompile Include="FrameMontage.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
