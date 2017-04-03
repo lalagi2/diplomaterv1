@@ -14,9 +14,11 @@
 
 #include "CGO.h"
 #include "FrameMontage.h"
+#include "DCT.h"
+#include "RadialProjection.h"
 
 #define SCENEDETECECTTHRESHOLD 210
-#define VIDEOCUTTHRESHOLD 200
+#define VIDEOCUTTHRESHOLD 1100
 
 int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 {
@@ -82,49 +84,49 @@ int main()
 	std::vector<cv::Mat> keyFrames;
 
 	FrameMontage frameMontage;
-	while (1)
-	{
-		double currentFrame = cap.get(CV_CAP_PROP_POS_FRAMES);
+	//while (1)
+	//{
+	//	double currentFrame = cap.get(CV_CAP_PROP_POS_FRAMES);
 
-		if (currentFrame < VIDEOCUTTHRESHOLD)
-		{
-			if (!cap.read(frame))
-			{
-				std::cout << "\n Cannot read the video file. \n";
-				break;
-			}
+	//	if (currentFrame < VIDEOCUTTHRESHOLD)
+	//	{
+	//		if (!cap.read(frame))
+	//		{
+	//			std::cout << "\n Cannot read the video file. \n";
+	//			break;
+	//		}
 
-			cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
-			cv::imshow("video", frame);
+	//		cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+	//	//	cv::imshow("video", frame);
 
-			// FrameMontage
-			if ((int)currentFrame % 50 == 0)
-			{
-				frameMontage.run(frame);
-				
-				//cv::imshow("video", frameMontage.frameMontage);
-			}
+	//		// FrameMontage
+	//		if ((int)currentFrame % 50 == 0)
+	//		{
+	//			frameMontage.run(frame);
+	//			
+	//			//cv::imshow("video", frameMontage.frameMontage);
+	//		}
 
-			if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
-			{
-				lastSceneFrame = currentFrame;
-				std::cout << "uj jelenet " << currentFrame << std::endl;
-			}
+	//		if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
+	//		{
+	//			lastSceneFrame = currentFrame;
+	//			std::cout << "uj jelenet " << currentFrame << std::endl;
+	//		}
 
-			if (cv::waitKey(10) == 'q') // Wait for 'q' key press to exit
-			{
-				break;
-			}
+	//		if (cv::waitKey(10) == 'q') // Wait for 'q' key press to exit
+	//		{
+	//			break;
+	//		}
 
-			lastFrame = frame;
-			lastSumOfDifferences = sumOfDifferences;
-		}
-		else
-		{
-			break;
-		}
+	//		lastFrame = frame;
+	//		lastSumOfDifferences = sumOfDifferences;
+	//	}
+	//	else
+	//	{
+	//		break;
+	//	}
 
-	}
+	//}
 
 	// Centroid of gradient
 	//CGO cgo;
@@ -145,9 +147,23 @@ int main()
 
 	//cgo.printFingerPrint();
 
-	frameMontage.calculateFingerPrint();
-	frameMontage.printFingerPrint();
+	//frameMontage.calculateFingerPrint();
+	//frameMontage.printFingerPrint();
 
+	/*DCT dct;
+
+	cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
+	dct.run(keyFrames);
+	dct.printFingerPrint();*/
+
+	RadialProjection radialProjection;
+
+	std::vector<cv::Point> points = radialProjection.bresenham(cv::Point(0, 0), cv::Point(00, -60));
+	
+	for (auto o : points)
+	{
+		std::cout << o << std::endl;
+	}
 
 	return 0;
 }
