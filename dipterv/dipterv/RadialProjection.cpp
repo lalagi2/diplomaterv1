@@ -175,6 +175,7 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 				get_line_intersection(cv::Point2f(1279.0f, 0.0f), cv::Point2f(1279.0f, 719.0f), cv::Point2f(640.0f, 360.0f), cv::Point2f(640.0f + iranyVektorX * 10000.0f, 360.0f + iranyVektorY * 10000.0f), intersectFloat);
 				get_line_intersection(cv::Point2f(0.0f, 0.0f), cv::Point2f(0.0f, 719.0f), cv::Point2f(640.0f, 360.0f), cv::Point2f(640.0f + iranyVektorX * 10000.0f * -1.0f, 360.0f + iranyVektorY * 10000.0f * -1.0f), intersect2Float);
 			}
+
 			cv::Point intersect = intersectFloat;
 			cv::Point intersect2 = intersect2Float;
 
@@ -185,7 +186,7 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			float PRightSide = 0.0f;
 			for (auto coordinate : pixelsCoordinates)
 			{
-				cv::Scalar pixelIntensity = keyFrames[0].at<uchar>(coordinate.y, coordinate.x);
+				cv::Scalar pixelIntensity = keyFrames[keyFrame].at<uchar>(coordinate.y, coordinate.x);
 
 				PLeftSide += pixelIntensity[0] * pixelIntensity[0];
 				PRightSide += pixelIntensity[0];
@@ -208,7 +209,7 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 
 			for (int i = 0; i < pixelsCoordinates.size(); i++)
 			{
-				cv::Scalar pixelIntensity = keyFrames[0].at<uchar>(pixelsCoordinates[i].y, pixelsCoordinates[i].x);
+				cv::Scalar pixelIntensity = keyFrames[keyFrame].at<uchar>(pixelsCoordinates[i].y, pixelsCoordinates[i].x);
 
 				_szoras += (pixelIntensity[0] - Mu) * (pixelIntensity[0] - Mu);
 			}
@@ -217,9 +218,25 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			szoras.push_back(_szoras);
 		}
 
+		float sumEgyenesAtlag = 0.0f;
+		for (auto o : egyenesAtlag)
+		{
+			sumEgyenesAtlag += o;
+		}
+
+		sumEgyenesAtlag /= egyenesAtlag.size();
+
+		float sumSzorasAtlag = 0.0f;
+		for (auto o : szoras)
+		{
+			sumSzorasAtlag += o;
+		}
+
+		sumSzorasAtlag /= szoras.size();
+
 		for (int i = 0; i < egyenesAtlag.size(); i++)
 		{
-			float _R = (szorasNegyzet[i] - egyenesAtlag[i]) / szoras[i];
+			float _R = (szorasNegyzet[i] - sumEgyenesAtlag) / sumSzorasAtlag;
 			R.push_back(_R);
 		}
 
@@ -232,7 +249,7 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			sum = 0.0f;
 			for (int phi = 0; phi < R.size() - 1; phi++)
 			{
-				sum += R[phi] * cos((M_PI * ((2 * phi) * M_PI / 180.0 + 1) * n) / (2 * N));
+				sum += R[phi] * cos((M_PI * ((2 * phi) + 1) * n) / (2 * N));
 			}
 
 			float D = sqrt(2 / N) * sum;
