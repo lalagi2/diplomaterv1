@@ -19,28 +19,47 @@
 #include "Corner.h"
 
 #define SCENEDETECECTTHRESHOLD 210
-#define VIDEOCUTTHRESHOLD 10
+#define VIDEOCUTTHRESHOLD 500
 
 int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 {
 	int sumOfDifferences = 0;
+
+	int** difference = new int*[currentFrame.rows];
+	for (int i = 0; i < currentFrame.rows; i++)
+		difference[i] = new int[currentFrame.cols];
+
 	auto start = std::chrono::system_clock::now();
+
+	//#pragma omp parallel for
 	for (int row = 0; row < currentFrame.rows; row++)
 	{
-		//#pragma omp parallel for reduction(+:sumOfDifferences)
 		for (int column = 0; column < currentFrame.cols; column++)
 		{
 			char currentFramePixel = currentFrame.at<char>(cv::Point(column, row));
 			char lastFramePixel = lastFrame.at<char>(cv::Point(column, row));
-			int difference = abs((int)currentFramePixel - (int)lastFramePixel);
-			sumOfDifferences += difference;
+			difference[row][column] = abs((int)currentFramePixel - (int)lastFramePixel);
+		}
+	}
+
+	//#pragma omp parallel for reduction(+:sumOfDifferences)
+	for (int row = 0; row < currentFrame.rows; row++)
+	{
+		for (int column = 0; column < currentFrame.cols; column++)
+		{
+			sumOfDifferences += difference[row][column];
 		}
 	}
 
 	auto end = std::chrono::system_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
 	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-	std::cout << "Difference Elapsed:" << elapsed_seconds << std::endl;
+	//std::cout << " SSD runtime: " << elapsed_seconds << " sec" <<std::endl;
+
+	// Deallocate the array
+	for (int i = 0; i < currentFrame.rows; i++)
+		delete[] difference[i];
+	delete[] difference;
 
 	return sumOfDifferences;
 }
