@@ -4,6 +4,12 @@
 void FrameMontage::printFingerPrint()
 {
 	cv::imshow("Fingerprint", fingerPrint);
+
+	cv::Mat inverseDCT;
+	fingerPrint.convertTo(fingerPrint, CV_32F);
+	cv::dct(fingerPrint, inverseDCT, cv::DCT_INVERSE);
+	inverseDCT.convertTo(inverseDCT, CV_8UC1);
+	cv::imshow("InverseFingerprint", inverseDCT);
 	cv::waitKey(0);
 }
 
@@ -13,10 +19,9 @@ void FrameMontage::calculateFingerPrint()
 	frameMontage.convertTo(frameMontage, CV_32F);
 	cv::dct(frameMontage, dctTransformed);
 
-	cv::Rect myROI(0, 0, 100, 100);
+	cv::Rect myROI(0, 0, 1000, 100);
 
 	dctTransformed.convertTo(dctTransformed, CV_8UC1);
-
 	fingerPrint = dctTransformed(myROI);
 }
 

@@ -16,16 +16,18 @@
 #include "FrameMontage.h"
 #include "DCT.h"
 #include "RadialProjection.h"
+#include "Corner.h"
 
 #define SCENEDETECECTTHRESHOLD 210
-#define VIDEOCUTTHRESHOLD 1000
+#define VIDEOCUTTHRESHOLD 10
 
 int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 {
 	int sumOfDifferences = 0;
+	auto start = std::chrono::system_clock::now();
 	for (int row = 0; row < currentFrame.rows; row++)
 	{
-		#pragma omp parallel for reduction(+:sumOfDifferences)
+		//#pragma omp parallel for reduction(+:sumOfDifferences)
 		for (int column = 0; column < currentFrame.cols; column++)
 		{
 			char currentFramePixel = currentFrame.at<char>(cv::Point(column, row));
@@ -34,6 +36,11 @@ int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 			sumOfDifferences += difference;
 		}
 	}
+
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	std::cout << "Difference Elapsed:" << elapsed_seconds << std::endl;
 
 	return sumOfDifferences;
 }
@@ -99,13 +106,13 @@ int main()
 			cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
 			cv::imshow("video", frame);
 
-			//// FrameMontage
-			//if ((int)currentFrame % 50 == 0)
-			//{
-			//	frameMontage.run(frame);
-			//	
-			//	//cv::imshow("video", frameMontage.frameMontage);
-			//}
+			// FrameMontage
+		/*	if ((int)currentFrame % 50 == 0)
+			{
+				frameMontage.run(frame);
+				
+				cv::imshow("video", frameMontage.frameMontage);
+			}*/
 
 			if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
 			{
@@ -128,41 +135,45 @@ int main()
 
 	}
 
+	/*frameMontage.calculateFingerPrint();
+	frameMontage.printFingerPrint();*/
+
 	// Centroid of gradient
-	//CGO cgo;
+	CGO cgo;
 	//cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
 
-	//auto start = std::chrono::system_clock::now();
-	//for (unsigned int i = 0; i < keyFrames.size(); i++)
-	//{
-	//	auto start = std::chrono::system_clock::now();
+	auto start = std::chrono::system_clock::now();
+	for (unsigned int i = 0; i < keyFrames.size(); i++)
+	{
+		auto start = std::chrono::system_clock::now();
 
-	//	cgo.run(keyFrames[i]);
-	//}
+		cgo.run(keyFrames[i]);
+	}
 
-	//auto end = std::chrono::system_clock::now();
-	//auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	//double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-	//std::cout << "Elapsed:" << elapsed_seconds << std::endl;
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	std::cout << "Elapsed:" << elapsed_seconds << std::endl;
 
-	//cgo.printFingerPrint();
+	cgo.printFingerPrint();
 
-	//frameMontage.calculateFingerPrint();
-	//frameMontage.printFingerPrint();
+	//DCT dct;
 
-	/*DCT dct;
+	//dct.run(keyFrames);
+	//dct.printFingerPrint();
 
-	cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
-	dct.run(keyFrames);
-	dct.printFingerPrint();*/
-
-	RadialProjection radialProjection;
-	radialProjection.run(keyFrames);
+	/*RadialProjection radialProjection;
+	radialProjection.run(keyFrames);*/
 	
 	/*for (auto o : points)
 	{
 		std::cout << o << std::endl;
 	}*/
+
+	/*Corner corner;
+	corner.run(keyFrames);*/
+
+	getchar();
 
 	return 0;
 }

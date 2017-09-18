@@ -71,7 +71,7 @@ void DCT::run(std::vector<cv::Mat> keyFrames)
 		{
 			int median = calculateMedian();
 			calculateFingerPrint(median);
-			fingerPrint.push_back(6879);
+			//fingerPrint.push_back(6879);
 			coefficients.clear();
 		}
 	}

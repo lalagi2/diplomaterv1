@@ -8,10 +8,16 @@
 #include "opencv2/imgproc/imgproc.hpp"
 
 
+struct CornerPoint
+{
+	cv::Point2i coord;
+	float R;
+};
+
 class Corner
 {
 public:
-	std::vector<cv::Point2i> cornerPoints;
+	std::vector<CornerPoint> cornerPoints;
 
 	void printFingerPrint();
 	void run(std::vector<cv::Mat> keyFrames);
