@@ -16,14 +16,12 @@ void CGO::printFingerPrint()
 
 void CGO::run(cv::Mat keyFrame)
 {
-	std::vector<double> subMatricesCGO;
+	double subMatricesCGO[8];
+	auto start = std::chrono::system_clock::now();
 
 	#pragma omp parallel for 
 	for (int n = 0; n < 8; n++)
 	{
-		double szamlaloosszeg = 0;
-		double sumM = 0;
-
 		cv::Rect part;
 		part.x = 320 * (n % 4);
 		if (n < 4)
@@ -41,8 +39,17 @@ void CGO::run(cv::Mat keyFrame)
 		//cv::imshow("video", keyFrame);
 		//cv::imshow("video2", partMat);
 
+		double** szamlaloOsszegArray = new double*[partMat.rows];
+		for (int i = 0; i < partMat.rows; i++)
+			szamlaloOsszegArray[i] = new double[partMat.cols];
+
+		double** sumMArray = new double*[partMat.rows];
+		for (int i = 0; i < partMat.rows; i++)
+			sumMArray[i] = new double[partMat.cols];
+
 		for (int row = 1; row < partMat.rows - 1; row++)
 		{
+			#pragma omp parallel for
 			for (int col = 1; col < partMat.cols - 1; col++)
 			{
 				char Gx = partMat.at<char>(cv::Point(col + 1, row)) - partMat.at<char>(cv::Point(col - 1, row));
@@ -59,14 +66,41 @@ void CGO::run(cv::Mat keyFrame)
 					theta = atan(Gy / Gx);
 				}
 
-				szamlaloosszeg += M * theta;
-				sumM += M;
+				szamlaloOsszegArray[row][col] += M * theta;
+				sumMArray[row][col] += M;
 			}
 		}
 
-		
-		subMatricesCGO.push_back(szamlaloosszeg / sumM);
+		double sumM = 0.0;
+		double szamlaloOsszeg = 0.0;
+		#pragma omp parallel for reduction(+:sumM, szamlaloOsszeg)
+		for (int row = 1; row < partMat.rows - 1; row++)
+		{
+			for (int col = 1; col < partMat.cols - 1; col++)
+			{
+				szamlaloOsszeg += szamlaloOsszegArray[row][col];
+				sumM += sumMArray[row][col];
+			}
+		}
+
+		subMatricesCGO[n] = (szamlaloOsszeg / sumM);
+
+
+		// Felszabadításkor már eredményt ad a centroidra
+		/*for (int i = 0; i < partMat.rows; i++)
+			delete[] szamlaloOsszegArray[i];
+		delete[] szamlaloOsszegArray;
+
+		for (int i = 0; i < partMat.rows; i++)
+			delete[] sumMArray[i];
+		delete[] sumMArray;*/
 	}
 
-	fingerPrint.push_back(subMatricesCGO);
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	std::cout << " CGO runtime: " << elapsed_seconds << " sec" << std::endl;
+
+	std::vector<double> subMatricesCGOVector(std::begin(subMatricesCGO), std::end(subMatricesCGO));
+	fingerPrint.push_back(subMatricesCGOVector);
 }
