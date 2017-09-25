@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Corner.h"
 
 void Corner::printFingerPrint()
@@ -8,6 +8,8 @@ void Corner::printFingerPrint()
 
 void Corner::run(std::vector<cv::Mat> keyFrames)
 {
+	auto start = std::chrono::system_clock::now();
+
 	for (int frame = 0; frame < keyFrames.size(); frame++)
 	{
 		cv::Mat SobelX;
@@ -17,10 +19,10 @@ void Corner::run(std::vector<cv::Mat> keyFrames)
 		cv::Sobel(keyFrames[frame], SobelX, CV_8UC1, 1, 0);
 		cv::Sobel(keyFrames[frame], SobelY, CV_8UC1, 0, 1);
 		cv::Sobel(SobelX, SobelXY, CV_8UC1, 0, 1);
-
-		for (int row = 5; row < keyFrames[frame].rows - 5; row += 5)
+		#pragma omp parallel for
+		for (int row = 5; row < keyFrames[frame].rows - 5; row += 10) // jó ha 10et ugrunk?
 		{
-			for (int column = 5; column < keyFrames[frame].cols - 5; column += 5)
+			for (int column = 5; column < keyFrames[frame].cols - 5; column += 10)
 			{
 				cv::Rect part;
 
@@ -34,17 +36,16 @@ void Corner::run(std::vector<cv::Mat> keyFrames)
 
 				cv::Mat dxx = dx.mul(dx);
 				cv::Mat dyy = dy.mul(dy);
+				cv::Mat dxdy = dx.mul(dy);
 
 				float dxsum = cv::sum(dxx)[0];
 				float dysum = cv::sum(dyy)[0];
-
-				cv::Mat dxdy = SobelXY(part);
 				float dxdysum = cv::sum(dxdy)[0];
 
 				float trace = dxsum + dysum;
-				float det = dxsum * dysum;// - dxdysum * dxdysum;
+				float det = dxsum * dysum - dxdysum * dxdysum;
 
-				float R = (det - 0.06f * trace * trace) / 10;
+				float R = (det - 0.04f * trace * trace) / 10.0f;
 
 				if (R > 8000000)
 				{
@@ -54,7 +55,24 @@ void Corner::run(std::vector<cv::Mat> keyFrames)
 					CornerPoint cp;
 					cp.R = R;
 					cp.coord = cornerCoord;
-					cornerPoints.push_back(cp);
+
+					if (cornerPoints.size() < 10) // Csak a 10 legnagyobb sarokértékű pontot tároljuk
+					{
+						cornerPoints.push_back(cp);
+					}
+					else // Egyébként lecseréljük a legkisebb R értékűt
+					{
+						int minIndex = 0;
+						for (int index = 1; index < cornerPoints.size(); index++)
+						{
+							if (cornerPoints[index].R < cornerPoints[minIndex].R) minIndex = index;
+						}
+
+						if (cp.R > cornerPoints[minIndex].R)
+						{
+							cornerPoints[minIndex] = cp;
+						}
+					}
 				}
 			}
 		}
@@ -64,17 +82,20 @@ void Corner::run(std::vector<cv::Mat> keyFrames)
 			cv::Point corner;
 			corner.x = c.coord.x;
 			corner.y = c.coord.y;
-			//cv::circle(keyFrames[frame], corner, 1, cv::Scalar(255, 0, 255), 1);
+			cv::circle(keyFrames[frame], corner, 1, cv::Scalar(255, 0, 255), 1);
 		}
 
 		cv::Mat a;
-		cornerHarris(keyFrames[frame], a, 2, 3, 0.06);
+	//	cornerHarris(keyFrames[frame], a, 2, 3, 0.06);
 		a = a * 255;
-		cv::imshow("video", a);
-		std::cout << "a";
-		cv::waitKey(0);
-
+		cv::imshow("video", keyFrames[frame]);
+		cv::waitKey();
 	}
+
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	std::cout << " Corner runtime: " << elapsed_seconds << " sec" << std::endl;
 }
 
 

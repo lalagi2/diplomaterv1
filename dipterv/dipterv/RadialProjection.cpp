@@ -150,14 +150,14 @@ void RadialProjection::printFingerPrint()
 
 void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 {
-
+	auto start = std::chrono::system_clock::now();
 	for (int keyFrame = 0; keyFrame < keyFrames.size(); keyFrame++)
 	{
 		float R[180];
 		float szoras[180];
 		float egyenesAtlag[180];
 		float szorasNegyzet[180];
-		auto start = std::chrono::system_clock::now();
+		
 		#pragma omp parallel for
 		for (int angle = 0; angle < 180; angle += 1)
 		{
@@ -225,11 +225,6 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			szoras[angle] = _szoras;
 		}
 
-		auto end = std::chrono::system_clock::now();
-		auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
-		double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-		std::cout << " Radial runtime: " << elapsed_seconds << " sec" << std::endl;
-
 		float sumEgyenesAtlag = 0.0f;
 		for (auto o : egyenesAtlag)
 		{
@@ -270,4 +265,9 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 
 		fingerPrint.push_back(coeffs);
 	}
+
+	auto end = std::chrono::system_clock::now();
+	auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	std::cout << " Radial runtime: " << elapsed_seconds << " sec" << std::endl;
 }
