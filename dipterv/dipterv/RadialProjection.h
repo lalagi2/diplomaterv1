@@ -11,10 +11,6 @@
 class RadialProjection
 {
 private:
-	std::vector<float> R;
-	std::vector<float> szoras;
-	std::vector<float> egyenesAtlag;
-	std::vector<float> szorasNegyzet;
 	std::vector<std::vector<float>> fingerPrint;
 public:
 	std::vector<cv::Point> bresenham(cv::Point p0, cv::Point p1);

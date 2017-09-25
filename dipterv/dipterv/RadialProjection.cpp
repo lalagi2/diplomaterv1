@@ -150,8 +150,15 @@ void RadialProjection::printFingerPrint()
 
 void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 {
+
 	for (int keyFrame = 0; keyFrame < keyFrames.size(); keyFrame++)
 	{
+		float R[180];
+		float szoras[180];
+		float egyenesAtlag[180];
+		float szorasNegyzet[180];
+		auto start = std::chrono::system_clock::now();
+		#pragma omp parallel for
 		for (int angle = 0; angle < 180; angle += 1)
 		{
 			float iranyVektorX = -1.0f;
@@ -202,8 +209,8 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 
 			float P = PLeftSide - PRightSide;
 
-			szorasNegyzet.push_back(P);
-			egyenesAtlag.push_back(Mu);
+			szorasNegyzet[angle] = P;
+			egyenesAtlag[angle] = Mu;
 
 			float _szoras = 0.0f;
 
@@ -215,8 +222,13 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			}
 
 			_szoras /= pixelsCoordinates.size();
-			szoras.push_back(_szoras);
+			szoras[angle] = _szoras;
 		}
+
+		auto end = std::chrono::system_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+		double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+		std::cout << " Radial runtime: " << elapsed_seconds << " sec" << std::endl;
 
 		float sumEgyenesAtlag = 0.0f;
 		for (auto o : egyenesAtlag)
@@ -224,7 +236,7 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			sumEgyenesAtlag += o;
 		}
 
-		sumEgyenesAtlag /= egyenesAtlag.size();
+		sumEgyenesAtlag /= 180.0f; //egyenesAtlag.size();
 
 		float sumSzorasAtlag = 0.0f;
 		for (auto o : szoras)
@@ -232,22 +244,22 @@ void RadialProjection::run(std::vector<cv::Mat> keyFrames)
 			sumSzorasAtlag += o;
 		}
 
-		sumSzorasAtlag /= szoras.size();
+		sumSzorasAtlag /= 180.0f; //szoras.size();
 
-		for (int i = 0; i < egyenesAtlag.size(); i++)
+		for (int i = 0; i < 180 /*egyenesAtlag.size()*/; i++)
 		{
 			float _R = (szorasNegyzet[i] - sumEgyenesAtlag) / sumSzorasAtlag;
-			R.push_back(_R);
+			R[i] = _R;
 		}
 
 		// DCT
 		float sum = 0.0f;
-		float N = R.size();
+		float N = 180;
 		std::vector<float> coeffs;
 		for (int n = 0; n < 40; n++)
 		{
 			sum = 0.0f;
-			for (int phi = 0; phi < R.size() - 1; phi++)
+			for (int phi = 0; phi < 180 /*R.size()*/ - 1; phi++)
 			{
 				sum += R[phi] * cos((M_PI * ((2 * phi) + 1) * n) / (2 * N));
 			}
