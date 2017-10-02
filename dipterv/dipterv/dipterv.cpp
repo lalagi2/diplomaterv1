@@ -19,7 +19,7 @@
 #include "Corner.h"
 
 #define SCENEDETECECTTHRESHOLD 210
-#define VIDEOCUTTHRESHOLD 500
+#define VIDEOCUTTHRESHOLD 10000
 
 int countFrameDifference(cv::Mat& currentFrame, cv::Mat& lastFrame)
 {
@@ -87,14 +87,16 @@ bool detectNewScene(cv::Mat& frame, cv::Mat& lastFrame, double currentFrame, dou
 	return false;
 }
 
-int main()
+std::vector<cv::Mat> getKeyFrames(std::string videoName)
 {
-	cv::VideoCapture cap("basejump2.mp4");
+	std::vector<int> keyFrameNumbers;
+	cv::VideoCapture cap("f:\\dipterv_video_adatbazis\\" + videoName);
+	std::cout << "videoNum " << videoName << std::endl;
 
 	if (!cap.isOpened())
 	{
 		std::cout << "Cannot open the video file. \n";
-		return -1;
+		exit(-1);
 	}
 
 	double fps = cap.get(CV_CAP_PROP_FPS);
@@ -114,7 +116,7 @@ int main()
 	{
 		double currentFrame = cap.get(CV_CAP_PROP_POS_FRAMES);
 
-		if (currentFrame < VIDEOCUTTHRESHOLD)
+		//if (currentFrame < VIDEOCUTTHRESHOLD)
 		{
 			if (!cap.read(frame))
 			{
@@ -126,20 +128,26 @@ int main()
 			cv::imshow("video", frame);
 
 			// FrameMontage
-		/*	if ((int)currentFrame % 50 == 0)
+			/*	if ((int)currentFrame % 50 == 0)
 			{
-				frameMontage.run(frame);
-				
-				cv::imshow("video", frameMontage.frameMontage);
+			frameMontage.run(frame);
+
+			cv::imshow("video", frameMontage.frameMontage);
 			}*/
 
 			if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
 			{
 				lastSceneFrame = currentFrame;
-				std::cout << "uj jelenet " << currentFrame << std::endl;
+				std::cout << "\tuj jelenet " << currentFrame << std::endl;
+				keyFrameNumbers.push_back(currentFrame);
+
+				if (keyFrames.size() >= 5)
+				{
+					break;
+				}
 			}
 
-			if (cv::waitKey(10) == 'q') // Wait for 'q' key press to exit
+			if (cv::waitKey(1) == 'q') // Wait for 'q' key press to exit
 			{
 				break;
 			}
@@ -147,53 +155,148 @@ int main()
 			lastFrame = frame;
 			lastSumOfDifferences = sumOfDifferences;
 		}
-		else
-		{
-			break;
-		}
-
+		/*	else
+			{
+				break;
+			}*/
 	}
 
-	/*frameMontage.calculateFingerPrint();
-	frameMontage.printFingerPrint();*/
+	return keyFrames;
+}
 
-	// Centroid of gradient
-	CGO cgo;
-	//cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
+int main()
+{
+//http://answers.opencv.org/question/5768/how-can-i-get-one-single-frame-from-a-video-file/	
+	//for (int i = 1; i <= 9; i++)
+	//{
+	//	std::vector<int> keyFrameNumbers;
+	//	std::string videoNumber = std::to_string(i);
+	//	cv::VideoCapture cap("f:\\dipterv_video_adatbazis\\0" + videoNumber + ".mp4");
+	//	std::cout << "videoNum " << videoNumber << std::endl;
 
-	auto start = std::chrono::system_clock::now();
-	for (unsigned int i = 0; i < keyFrames.size(); i++)
-	{
-		auto start = std::chrono::system_clock::now();
+	//	if (!cap.isOpened())
+	//	{
+	//		std::cout << "Cannot open the video file. \n";
+	//		return -1;
+	//	}
 
-		cgo.run(keyFrames[i]);
-	}
+	//	double fps = cap.get(CV_CAP_PROP_FPS);
 
-	auto end = std::chrono::system_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-	std::cout << "Elapsed:" << elapsed_seconds << std::endl;
+	//	cv::namedWindow("video", CV_WINDOW_AUTOSIZE);
 
-	cgo.printFingerPrint();
+	//	cv::Mat frame;
+	//	cv::Mat lastFrame;
+	//	double lastSceneFrame = 0;
+	//	int sumOfDifferences = 0;
+	//	int lastSumOfDifferences = 0;
 
-	//DCT dct;
+	//	std::vector<cv::Mat> keyFrames;
 
-	//dct.run(keyFrames);
-	//dct.printFingerPrint();
+	//	FrameMontage frameMontage;
+	//	while (1)
+	//	{
+	//		double currentFrame = cap.get(CV_CAP_PROP_POS_FRAMES);
 
-	/*RadialProjection radialProjection;
-	radialProjection.run(keyFrames);*/
+	//		//if (currentFrame < VIDEOCUTTHRESHOLD)
+	//		{
+	//			if (!cap.read(frame))
+	//			{
+	//				std::cout << "\n Cannot read the video file. \n";
+	//				break;
+	//			}
+
+	//			cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+	//			cv::imshow("video", frame);
+
+	//			// FrameMontage
+	//			/*	if ((int)currentFrame % 50 == 0)
+	//			{
+	//			frameMontage.run(frame);
+
+	//			cv::imshow("video", frameMontage.frameMontage);
+	//			}*/
+
+	//			if (detectNewScene(frame, lastFrame, currentFrame, lastSceneFrame, sumOfDifferences, lastSumOfDifferences, keyFrames))
+	//			{
+	//				lastSceneFrame = currentFrame;
+	//				std::cout << "\tuj jelenet " << currentFrame << std::endl;
+	//				keyFrameNumbers.push_back(currentFrame);
+
+	//				if (keyFrames.size() >= 5)
+	//				{
+	//					break;
+	//				}
+	//			}
+
+	//			if (cv::waitKey(1) == 'q') // Wait for 'q' key press to exit
+	//			{
+	//				break;
+	//			}
+
+	//			lastFrame = frame;
+	//			lastSumOfDifferences = sumOfDifferences;
+	//		}
+	//	/*	else
+	//		{
+	//			break;
+	//		}*/
+
+	//	}
+
+	//	/*frameMontage.calculateFingerPrint();
+	//	frameMontage.printFingerPrint();*/
+
+	//	//// Centroid of gradient
+	//	CGO cgo;
+	//	//cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
+
+	//	auto start = std::chrono::system_clock::now();
+	//	for (unsigned int i = 0; i < keyFrames.size(); i++)
+	//	{
+	//		cgo.run(keyFrames[i]);
+	//	}
+
+	//	cgo.printFingerPrint();
+	//	cgo.appendToDatabase(i, keyFrameNumbers);
+
+	//	//auto end = std::chrono::system_clock::now();
+	//	//auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+	//	//double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+	//	//std::cout << "Elapsed:" << elapsed_seconds << std::endl;
+
+	//	//cgo.printFingerPrint();
+
+	//	//DCT dct;
+
+	//	//dct.run(keyFrames);
+	//	//dct.printFingerPrint();
+
+	//	/*RadialProjection radialProjection;
+	//	radialProjection.run(keyFrames);*/
+
+	//	/*for (auto o : points)
+	//	{
+	//	std::cout << o << std::endl;
+	//	}*/
+
+	///*	Corner corner;
+	//	corner.run(keyFrames);*/
+
+	//	//getchar();
+	//}
 	
-	/*for (auto o : points)
+	std::vector<cv::Mat> keyFrame = getKeyFrames("nincsbenne.mp4");
+
+	CGO cgo;
+	std::vector<std::vector<double>> videoFingerPrint;
+	for (auto kf : keyFrame)
 	{
-		std::cout << o << std::endl;
-	}*/
+		std::vector<double> fingerPrint = cgo.run(kf);
+		videoFingerPrint.push_back(fingerPrint);
+	}
 
-	/*Corner corner;
-	corner.run(keyFrames);*/
-
-	getchar();
-
+	std::cout << cgo.checkMatchInDB(videoFingerPrint);
+	
 	return 0;
 }
 
