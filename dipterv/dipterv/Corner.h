@@ -20,6 +20,8 @@ class Corner
 public:
 	std::vector<std::vector<CornerPoint>> videoFingerPrints;
 	std::map<std::string, std::vector<std::vector<CornerPoint>>> dbFingerPrint;
+	std::string checkMatchInDB(std::vector<std::vector<CornerPoint>> fingerPrintToSearch);
+	float distance(CornerPoint p1, CornerPoint p2);
 
 	void appendToDatabase(int n, std::vector<int> keyFrameNumbers);
 	void loadDB();

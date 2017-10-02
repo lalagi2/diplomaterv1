@@ -14,6 +14,50 @@ std::vector<std::string> split1(const std::string &text, char sep)
 	return tokens;
 }
 
+
+
+std::string Corner::checkMatchInDB(std::vector<std::vector<CornerPoint>> fingerPrintToSearch)
+{
+	loadDB();
+
+	std::string bestVideo = "Nincs benne az adatbazisban";
+
+	float bestError = std::numeric_limits<float>::max();
+
+	for (auto video : dbFingerPrint)
+	{
+		std::string videoName = video.first;
+		float errorSum = 0.0f;
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < video.second[i].size(); j++)
+			{
+				if (fingerPrintToSearch[i].size() > 0)
+				{
+					float dist = distance(fingerPrintToSearch[i][j], video.second[i][j]);
+					errorSum += dist;
+				}
+			}
+		}
+
+		if (errorSum < bestError && errorSum < 1) // 1 = threshold
+		{
+			bestError = errorSum;
+			bestVideo = videoName;
+		}
+	}
+
+	return bestVideo;
+}
+
+float Corner::distance(CornerPoint p1, CornerPoint p2)
+{
+	float difX = fabs(p1.coord.x - p2.coord.x);
+	float difY = fabs(p1.coord.y - p2.coord.y);
+
+	return sqrt(difX * difX + difY * difY);
+}
+
 void Corner::appendToDatabase(int n, std::vector<int> keyFrameNumbers)
 {
 	std::ofstream dbFile;
@@ -68,7 +112,7 @@ void Corner::loadDB()
 					
 					cp.coord.x = std::stoi(values[i]);
 					cp.coord.y = std::stoi(values[i + 1]);
-					std::cout << cp.coord.x << " " << cp.coord.y << std::endl;
+
 					fingerPrintNumbers.push_back(cp);
 				}
 
