@@ -164,14 +164,15 @@ std::vector<cv::Mat> getKeyFrames(std::string videoName)
 	return keyFrames;
 }
 
+//http://answers.opencv.org/question/5768/how-can-i-get-one-single-frame-from-a-video-file/	
+
 int main()
 {
-//http://answers.opencv.org/question/5768/how-can-i-get-one-single-frame-from-a-video-file/	
-	//for (int i = 1; i <= 9; i++)
+	//for (int i = 10; i <= 71; i++)
 	//{
 	//	std::vector<int> keyFrameNumbers;
 	//	std::string videoNumber = std::to_string(i);
-	//	cv::VideoCapture cap("f:\\dipterv_video_adatbazis\\0" + videoNumber + ".mp4");
+	//	cv::VideoCapture cap("f:\\dipterv_video_adatbazis\\" + videoNumber + ".mp4");
 	//	std::cout << "videoNum " << videoNumber << std::endl;
 
 	//	if (!cap.isOpened())
@@ -243,59 +244,89 @@ int main()
 
 	//	}
 
-	//	/*frameMontage.calculateFingerPrint();
-	//	frameMontage.printFingerPrint();*/
+		/*frameMontage.calculateFingerPrint();
+		frameMontage.printFingerPrint();*/
 
-	//	//// Centroid of gradient
-	//	CGO cgo;
-	//	//cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
+		// Centroid of gradient
+		//CGO cgo;
+		////cv::namedWindow("video2", CV_WINDOW_AUTOSIZE);
 
-	//	auto start = std::chrono::system_clock::now();
-	//	for (unsigned int i = 0; i < keyFrames.size(); i++)
-	//	{
-	//		cgo.run(keyFrames[i]);
-	//	}
+		//auto start = std::chrono::system_clock::now();
+		//for (unsigned int i = 0; i < keyFrames.size(); i++)
+		//{
+		//	cgo.run(keyFrames[i]);
+		//}
 
-	//	cgo.printFingerPrint();
-	//	cgo.appendToDatabase(i, keyFrameNumbers);
+		//cgo.printFingerPrint();
+		//cgo.appendToDatabase(i, keyFrameNumbers);
 
-	//	//auto end = std::chrono::system_clock::now();
-	//	//auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	//	//double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-	//	//std::cout << "Elapsed:" << elapsed_seconds << std::endl;
+		//auto end = std::chrono::system_clock::now();
+		//auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		//double elapsed_seconds = std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
+		//std::cout << "Elapsed:" << elapsed_seconds << std::endl;
 
-	//	//cgo.printFingerPrint();
+		//cgo.printFingerPrint();
 
-	//	//DCT dct;
+		/*DCT dct;
 
-	//	//dct.run(keyFrames);
-	//	//dct.printFingerPrint();
+		for (unsigned int i = 0; i < keyFrames.size(); i++)
+		{
+			dct.run(keyFrames[i]);
+		}
 
-	//	/*RadialProjection radialProjection;
-	//	radialProjection.run(keyFrames);*/
+		dct.printFingerPrint();
+		dct.appendToDatabase(i, keyFrameNumbers);*/
 
-	//	/*for (auto o : points)
-	//	{
-	//	std::cout << o << std::endl;
-	//	}*/
+		/*RadialProjection radialProjection;
+		radialProjection.run(keyFrames);*/
 
-	///*	Corner corner;
-	//	corner.run(keyFrames);*/
+		/*for (auto o : points)
+		{
+		std::cout << o << std::endl;
+		}*/
 
-	//	//getchar();
+	/*	Corner corner;
+		for (unsigned int i = 0; i < keyFrames.size(); i++)
+		{
+			corner.run(keyFrames[i]);
+		}
+
+		corner.appendToDatabase(i, keyFrameNumbers);*/
+
+		//getchar();
 	//}
 	
-	std::vector<cv::Mat> keyFrame = getKeyFrames("nincsbenne.mp4");
+	std::vector<cv::Mat> keyFrames = getKeyFrames("nincsbenne.mp4");
 
-	CGO cgo;
+	/*CGO cgo;
 	std::vector<std::vector<double>> videoFingerPrint;
-	for (auto kf : keyFrame)
+	for (auto kf : keyFrames)
 	{
 		std::vector<double> fingerPrint = cgo.run(kf);
 		videoFingerPrint.push_back(fingerPrint);
 	}
 
-	std::cout << cgo.checkMatchInDB(videoFingerPrint);
+	std::cout << cgo.checkMatchInDB(videoFingerPrint);*/
+
+	DCT dct;
+	for (auto kf : keyFrames)
+	{
+		dct.run(kf);
+		//videoFingerPrint.push_back(dct.fingerPrint[0]);
+	}
+
+	std::cout << dct.checkMatchInDB(dct.fingerPrint[0]);
+
+ //	Corner corner;
+	//corner.loadDB();
+	//std::vector<std::vector<CornerPoint>> videoFingerPrint;
+	//for (auto kf : keyFrames)
+	//{
+	//	std::vector<CornerPoint> fingerPrint = corner.run(kf);
+	//	videoFingerPrint.push_back(fingerPrint);
+	//}
+
+	//std::cout << corner.checkMatchInDB(videoFingerPrint);
 	
 	return 0;
 }
